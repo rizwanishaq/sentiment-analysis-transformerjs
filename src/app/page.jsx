@@ -1,38 +1,9 @@
 'use client';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect} from 'react';
 import { classify } from './actions/classify';
-import debounce from 'lodash.debounce'; // Add lodash.debounce for debouncing
+import ClassificationResults from '@/components/ClassificationResults';
 
-// Component for displaying the classification result with styling and emojis
-const ClassificationResult = ({ result }) => {
-  const getEmoji = useCallback((label) => {
-    switch (label?.toUpperCase()) {
-      case 'POSITIVE':
-        return '😊';
-      case 'NEGATIVE':
-        return '😢';
-      case 'NEUTRAL':
-        return '😐';
-      default:
-        return '🤔';
-    }
-  }, []);
 
-  const renderedResult = useMemo(() => {
-    if (!result) return null;
-    return (
-      <div className="text-center p-6 bg-white shadow-xl rounded-lg border-t-4 border-indigo-500">
-        <p className="text-xl font-bold text-gray-700">Classification Result:</p>
-        <p className="text-6xl mt-3">{getEmoji(result.label)}</p>
-        <p className="text-lg font-semibold mt-2">
-          {result.label} ({(result.score * 100).toFixed(2)}%)
-        </p>
-      </div>
-    );
-  }, [result, getEmoji]);
-
-  return renderedResult;
-};
 
 // Main component with a refreshed and attractive layout
 export default function Home() {
@@ -41,8 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);  // Loading state
   const [error, setError] = useState(null);  // Error state
 
-  // Debounce the classification function to avoid frequent API calls
-  const handleClassify = useCallback(debounce(async (text) => {
+  const handleClassify = async (text) => {
     if (!text) {
       setResult(null);
       return;
@@ -64,12 +34,12 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, 500), []); // Adjust debounce delay as needed
+  }
 
   // Trigger classification when inputText changes
   useEffect(() => {
     handleClassify(inputText);
-  }, [inputText, handleClassify]);
+  }, [inputText]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-r from-indigo-300 to-purple-400 p-12">
@@ -84,7 +54,7 @@ export default function Home() {
             type="text"
             className="w-full p-4 border-2 border-indigo-400 rounded-lg shadow-lg focus:outline-none focus:border-indigo-600 transition duration-300"
             placeholder="Enter text here to analyze sentiment"
-            onChange={(e) => setInputText(e.target.value)}  // Trigger the parent function when the input changes
+            onInput={(e) => setInputText(e.target.value)}  // Trigger the parent function when the input changes
             value={inputText}
           />
         </div>
@@ -100,7 +70,7 @@ export default function Home() {
               <p className="text-red-600 text-xl font-bold">{error}</p>
             </div>
           ) : result ? (
-            <ClassificationResult result={result} />
+            <ClassificationResults result={result} />  // Display classification results
           ) : (
             <div className="text-center">
               <p className="text-white text-lg font-light">Start typing to classify text.</p>
